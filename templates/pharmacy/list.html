@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div style="border: 1px solid red; display:flex;">
+    <div id="map" style="width:75%;height:800px;margin:auto;"></div>
+    <div style="width: 25%; border: 1px solid blue; display: flex; flex-direction: column;">
+        <div style="flex-grow:1; height:100px; border: 1px solid green;"></div>
+        <div style="flex-grow:5; overflow:scroll; overflow-x:hidden; height:200px; border: 1px solid yellow;"></div>
+    </div>
+
+</div>
+
+
+
+<script src="{% static 'bundang.json' %}" type="text/javascript"></script>
+<script>
+
+// json 파일을 불러온다.
+let geoJson = JSON.parse(JSON.stringify(data));
+
+var map = new naver.maps.Map('map', {
+        center: new naver.maps.LatLng(37.3717962, 127.1023569), //지도의 초기 중심 좌표
+        zoom: 13 //지도의 초기 줌 레벨
+});
+
+var bundang = new naver.maps.LatLngBounds(
+    new naver.maps.LatLng(37.319392, 127.0209894),
+    new naver.maps.LatLng(37.4285261, 127.1857843));
+
+    naver.maps.Event.once(map, 'init', function(e) {
+    map.data.setStyle(function(feature) {
+        var mantle_properties = feature.geometryCollection[0].getRaw().mantle_properties;
+        var styleOptions = {
+            ...mantle_properties,
+        };
+        
+        // var styleOptions = {
+        //     fillColor: '#ff0000',
+        //     fillOpacity: 0.0001,
+        //     strokeColor: '#ff0000',
+        //     strokeWeight: 2,
+        //     strokeOpacity: 0.4
+        // };
+
+        if (feature.getProperty('focus')) {
+            styleOptions.fillOpacity = 0.6;
+            styleOptions.fillColor = '#0f0';
+            styleOptions.strokeColor = '#0f0';
+            styleOptions.strokeWeight = 4;
+            styleOptions.strokeOpacity = 1;
+        }
+        return styleOptions;
+    });
+
+    map.data.addGeoJson(geoJson, true);
+
+    map.setZoom(13, true);
+    map.setCenter(new naver.maps.LatLng(37.3717962, 127.1023569));
+    map.setOptions('minZoom', 13);
+    map.setOptions('maxBounds', bundang);
+
+    markPOI();
+
+    // map.data.addListener('click', function(e) {
+    //     var feature = e.feature;
+
+    //     if (feature.getProperty('focus') !== true) {
+    //         feature.setProperty('focus', true);
+    //     } else {
+    //         feature.setProperty('focus', false);
+    //     }
+    // });
+
+    // map.data.addListener('mouseover', function(e) {
+    //     var feature = e.feature;
+    //     map.data.overrideStyle(feature, {
+    //         fillOpacity: 1,
+    //         strokeWeight: 10,
+    //         strokeOpacity: 1
+    //     });
+    // });
+
+    // map.data.addListener('mouseout', function(e) {
+    //     map.data.revertStyle();
+    // });
+});
+
+
+// 장소들을 지도에 마커로 표시한다.
+function markPOI() {
+    {% for pharm in pharm_list %}
+        
+        var marker = new naver.maps.Marker({
+            position: new naver.maps.LatLng({{ pharm.latitude }}, {{ pharm.longitude }}),
+            map: map
+        });
+    {% endfor %}
+}
+
+// naver.maps.Event.addListener(map, 'bounds_changed', function(bounds) { 
+//     console.log('Center: ' + map.getCenter().toString() + ', Bounds: ' + bounds.toString());
+// });
+
+</script>
+
+{% endblock %}
